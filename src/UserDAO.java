@@ -1,7 +1,7 @@
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,17 +16,30 @@ public class UserDAO {
 
 		Connection c = DriverManager.getConnection(url, db_id, db_pw);
 
-		Statement st = null;
+		PreparedStatement pstmt = null;
 
-		String sql = "insert into member(id, pw, name) values ('" + vo.getId()
-				+ "','" + vo.getPw() + "','" + vo.getName() + "')"; // 쿼리문 끝에
-																	// 세미콜론을 넣으면
-																	// 안된다.
-		st = c.createStatement();
+		// String sql = "insert into member(id, pw, name) values ('" +
+		// vo.getId()
+		// + "','" + vo.getPw() + "','" + vo.getName() + "')"; // 쿼리문 끝에
+		// 세미콜론을 넣으면
+		// 안된다.
 
-		st.executeUpdate(sql);
+		String sql = "insert into member(id, pw, name) values (?,?,?)";
 
-		st.close();
+		pstmt = c.prepareStatement(sql);
+
+		pstmt.setString(1, vo.getId());
+		pstmt.setString(2, vo.getPw());
+		pstmt.setString(3, vo.getName());
+
+		pstmt.execute();
+
+		// st = c.createStatement();
+		//
+		// st.executeUpdate(sql);
+		//
+		// st.close();
+		pstmt.close();
 		c.close();
 
 	}
@@ -38,13 +51,16 @@ public class UserDAO {
 
 		Connection c = DriverManager.getConnection(url, db_id, db_pw);
 
-		Statement st = null;
+		// Statement st = null;
+		PreparedStatement pstmt = null;
 
-		String query = "SELECT ID, PW, NAME FROM MEMBER WHERE ID='" + id + "'";
+		String query = "SELECT ID, PW, NAME FROM MEMBER WHERE ID = ?";
 
-		st = c.createStatement();
+		pstmt = c.prepareStatement(query);
 
-		ResultSet rs = st.executeQuery(query);
+		pstmt.setString(1, id);
+
+		ResultSet rs = pstmt.executeQuery();
 
 		rs.next();
 
@@ -59,7 +75,7 @@ public class UserDAO {
 		System.out.println(result.toString());
 
 		rs.close();
-		st.close();
+		pstmt.close();
 		c.close();
 
 		return result;
@@ -70,16 +86,18 @@ public class UserDAO {
 
 		Connection c = DriverManager.getConnection(url, db_id, db_pw);
 
-		Statement st = null;
+		PreparedStatement pstmt = null;
 
-		String query = "UPDATE MEMBER " + "SET PW = '" + vo.getPw() + "',"
-				+ "NAME='" + vo.getName() + "' " + "WHERE ID = '" + vo.getId()
-				+ "'";
-		st = c.createStatement();
+		String query = "UPDATE MEMBER SET PW=?,NAME=? WHERE ID = ?";
+		pstmt = c.prepareStatement(query);
 
-		st.execute(query);
+		pstmt.setString(1, vo.getPw());
+		pstmt.setString(2, vo.getName());
+		pstmt.setString(3, vo.getId());
 
-		st.close();
+		pstmt.execute();
+
+		pstmt.close();
 		c.close();
 	}
 
@@ -88,46 +106,53 @@ public class UserDAO {
 
 		Connection c = DriverManager.getConnection(url, db_id, db_pw);
 
-		Statement st = null;
-		
-		String query = "DELETE FROM MEMBER WHERE ID = '" + id + "'";
-		
-		st = c.createStatement();
-		
-		st.execute(query);
-		
-		st.close();
+		// Statement st = null;
+		PreparedStatement pstmt = null;
+
+		String query = "DELETE FROM MEMBER WHERE ID = ?";
+
+		pstmt = c.prepareStatement(query);
+
+		pstmt.setString(1, id);
+
+		pstmt.execute();
+
+		// st = c.createStatement();
+
+		// st.execute(query);
+
+		pstmt.close();
 		c.close();
 	}
 
 	public List<UserVO> listAll() throws Exception {
 		List<UserVO> result = new ArrayList<UserVO>();
-		
+
 		UserVO vo = null;
-		
+
 		Class.forName(driver);
 
 		Connection c = DriverManager.getConnection(url, db_id, db_pw);
 
-		Statement st = null;
-		
+		PreparedStatement pstmt = null;
+
 		String query = "SELECT ID, PW, NAME FROM MEMBER";
-		
-		st = c.createStatement();
-		
-		ResultSet rs = st.executeQuery(query);
-		
-		while(rs.next()){
+
+		pstmt = c.prepareStatement(query);
+
+		ResultSet rs = pstmt.executeQuery();
+
+		while (rs.next()) {
 			vo = new UserVO();
 			vo.setId(rs.getString(1));
 			vo.setPw(rs.getString(2));
 			vo.setName(rs.getString(3));
-			
+
 			result.add(vo);
 		}
-		
+
 		rs.close();
-		st.close();
+		pstmt.close();
 		c.close();
 
 		return result;
